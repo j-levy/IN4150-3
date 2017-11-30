@@ -1,25 +1,23 @@
 package com.company;
 
-public class Message {
+import java.io.Serializable;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+
+public class Message implements Remote, Serializable {
     private char type;
     private int round;
-    private boolean value;
+    private int value;
 
-    public Message(char type, int round, boolean value) {
+    public Message(char type, int round, int value) {
         this.type = type;
         this.round = round;
         this.value = value;
     }
 
-
     /* message type cannot be changed, so only getters, so setters outside the constructor */
-    public char getType() {
-        return type;
-    }
-    public int getRound() {
-        return round;
-    }
-    public boolean getValue(){
-        return value;
-    }
+
+    public int getRound() { return round; }
+    public char getType() { return type; }
+    public int value() { return value; }
 }

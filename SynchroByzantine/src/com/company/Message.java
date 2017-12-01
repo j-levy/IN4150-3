@@ -19,5 +19,5 @@ public class Message implements Remote, Serializable {
 
     public int getRound() { return round; }
     public char getType() { return type; }
-    public int value() { return value; }
+    public int getvalue() { return value; }
 }

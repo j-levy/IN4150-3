@@ -12,8 +12,9 @@ public class Main {
 
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
 	// write your code here
-        int N = 7; // number of processes
-        int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5))); // unsure, it should get f < 5N (strictly)
+        int N = 20; // number of processes
+        int f = 10;
+        //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5))); // unsure, it should get f < 5N (strictly)
         System.out.println("N = "+N+", f = "+f);
 
 

@@ -16,7 +16,7 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
     private Registry syncreg;
     private SynchroServerInterface syncstub;
 
-
+    private volatile int proceed;
     private volatile ArrayList<Message> Notifies, Proposals;
 
     public ByzantineServerImplementation(int remoteN, int f, int remoteID, boolean remoteIsTraitor) throws RemoteException, NotBoundException, MalformedURLException {
@@ -28,6 +28,7 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
         this.round = 1;
         this.Proposals = new ArrayList<Message>();
         this.Notifies = new ArrayList<Message>();
+        this.proceed = 0;
 
         regs = new Registry[N];
         stub = new ByzantineServerInterface[N];
@@ -48,27 +49,29 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
 
     public void main_proc() throws RemoteException, InterruptedException {
         Message m = new Message('N', round, value);
-        System.out.println(id+" : broadcasting");
+        //System.out.println(id+" : broadcasting");
         broadcast(m);
-        System.out.println(id+" : broadcast finished");
-        while(Notifies.size() < N-f);
+        //System.out.println(id+" : broadcast finished");
+        while(proceed < N-f);
+
         System.out.println(id+" : enough messages received");
     }
 
 
-    public void receive(Message m) throws RemoteException {
+    public synchronized void receive(Message m) throws RemoteException {
         switch(m.getType()) {
             case 'P' :
                 Proposals.add(m);
-                System.out.println(id+ " recieves proposal");
+                //System.out.println(id+ " recieves proposal");
             break;
             case 'N' :
                 Notifies.add(m);
-                System.out.println(id+ " recieves notify");
+                //System.out.println(id+ " recieves notify");
             break;
             default:
             break;
         }
+        proceed++;
     }
 
 

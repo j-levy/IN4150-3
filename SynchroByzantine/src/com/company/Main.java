@@ -12,9 +12,19 @@ public class Main {
 
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
 	// write your code here
-        int N = 10; // number of processes
-        int f = 1;
-        //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5))); // unsure, it should get f < 5N (strictly)
+        int N = 11; // number of processes
+        int f = 2;
+        /*
+        Failure types :
+        00000001 : Don't send any message at all (domines 010)
+        00000010 : Flip a coin and send a message if heads (recess in front of 001)
+        00000100 : Send a random value instead of the real value
+        00001000 : Reverse the value (0 => 1, 1 => 0, -1 => 0 or 1)
+        00010000 : Put agnostic value (-1)
+         */
+        byte failureType = (byte) 0b00000000;
+
+        //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
         System.out.println("N = "+N+", f = "+f);
 
 
@@ -36,7 +46,7 @@ public class Main {
                 // ByzantineServerImplementation(Number of Byzantines, own ID, isTraitor (first "f" ones are, next aren't)
                 boolean isTraitor = i < f;
                 ByzantineSkeleton[i] =
-                        (ByzantineServerInterface) UnicastRemoteObject.exportObject(new ByzantineServerImplementation(N, f, i, isTraitor), 10000 + i);
+                        (ByzantineServerInterface) UnicastRemoteObject.exportObject(new ByzantineServerImplementation(N, f, i, isTraitor, failureType), 10000 + i);
                 ByzanceRegistry[i] = LocateRegistry.createRegistry(10000+i);
                 ByzanceRegistry[i].rebind("Receive", ByzantineSkeleton[i]);
 

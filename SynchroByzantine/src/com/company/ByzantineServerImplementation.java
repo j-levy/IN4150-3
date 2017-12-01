@@ -4,11 +4,13 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class ByzantineServerImplementation implements ByzantineServerInterface {
 
     private int N, f, id, value, round;
     private boolean isTraitor;
+    private byte failureType;
 
     private boolean isDecided;
     private int decidedValue;
@@ -21,8 +23,12 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
 
     private volatile int proceedN, proceedP;
     private volatile ArrayList<Message> Notifies, Proposals;
+    Random coin;
 
-    public ByzantineServerImplementation(int remoteN, int f, int remoteID, boolean remoteIsTraitor) throws RemoteException, NotBoundException, MalformedURLException {
+    public ByzantineServerImplementation(int remoteN, int f, int remoteID, boolean remoteIsTraitor, byte remoteFailureType) throws RemoteException, NotBoundException, MalformedURLException {
+
+        this.coin = new Random();
+
         this.N = remoteN;
         this.f = f;
         this.id = remoteID;
@@ -35,6 +41,8 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
         this.proceedP = 0;
         this.isDecided = false;
         this.decidedValue = -1;
+
+        this.failureType = remoteFailureType;
 
         regs = new Registry[N];
         stub = new ByzantineServerInterface[N];
@@ -132,7 +140,7 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
 
     public synchronized void receive(Message m) throws RemoteException {
         try{
-            Thread.sleep((int)Math.random()*1000);
+            Thread.sleep((int) Math.round(Math.random())*1000);
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
@@ -154,10 +162,46 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
 
 
     public void broadcast(Message m1) throws RemoteException, InterruptedException {
-        int j = 0;
+        int shouldIsend = 1;
+        boolean isSending = true;
         for (int i = 0; i < N; i++)
         {
-            stub[i].receive(m1);
+            if (isTraitor)
+            {
+                if ((failureType & 0b00010000) == 0b00010000)
+                {
+                    m1.agnosticValue();
+                }
+                if ((failureType & 0b00001000) == 0b00001000)
+                {
+                    m1.reverseValue();
+                }
+                if ((failureType & 0b00000100) == 0b00000100)
+                {
+                    m1.randValue();
+                }
+                if ((failureType & 0b00000010) == 0b00000010)
+                {
+                    shouldIsend = (int) Math.round(Math.random());
+                }
+                if ((failureType & 0b00000001) == 0b00000001)
+                {
+                    shouldIsend = 0;
+                }
+            }
+            switch(shouldIsend) {
+                case 0:
+                    isSending = false;
+                    break;
+                case 1:
+                    isSending = true;
+                    break;
+                default:
+                    break;
+            }
+
+            if (isSending)
+                stub[i].receive(m1);
         }
     }
 

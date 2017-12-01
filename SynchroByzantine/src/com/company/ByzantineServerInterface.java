@@ -1,7 +1,5 @@
 package com.company;
 
-import com.sun.org.apache.regexp.internal.RE;
-
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;

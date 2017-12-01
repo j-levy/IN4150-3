@@ -12,7 +12,7 @@ public class Main {
 
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
 	// write your code here
-        int N = 5; // number of processes
+        int N = 3; // number of processes
         int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5))); // unsure, it should get f < 5N (strictly)
         System.out.println("N = "+N+", f = "+f);
 
@@ -35,12 +35,30 @@ public class Main {
                 // ByzantineServerImplementation(Number of Byzantines, own ID, isTraitor (first "f" ones are, next aren't)
                 boolean isTraitor = i < f;
                 ByzantineSkeleton[i] =
-                        (ByzantineServerInterface) UnicastRemoteObject.exportObject(new ByzantineServerImplementation(N, i, isTraitor), 10000 + i);
+                        (ByzantineServerInterface) UnicastRemoteObject.exportObject(new ByzantineServerImplementation(N, f, i, isTraitor), 10000 + i);
                 ByzanceRegistry[i] = LocateRegistry.createRegistry(10000+i);
                 ByzanceRegistry[i].rebind("Receive", ByzantineSkeleton[i]);
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+        Registry[] reg = new Registry[N];
+        ByzantineServerInterface[] stub = new ByzantineServerInterface[N];
+
+        for (int i = 0; i < N; i++)
+        {
+            reg[i] = LocateRegistry.getRegistry(10000 + i);
+            stub[i] = (ByzantineServerInterface) java.rmi.Naming.lookup("rmi://localhost:" + (10000 + i) + "/Receive");
+        }
+
+        for (int i = 0; i < N; i++)
+            stub[i].connect();
+
+        Thread[] P = new Thread[N];
+        for (int i = 0; i < N; i++){
+            P[i] = new Thread(new Launcher(stub[i]));
+            P[i].start();
         }
 
     }

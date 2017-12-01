@@ -53,21 +53,10 @@ public class SynchroServerImplementation implements SynchroServerInterface {
 
     public void main_synchro() throws RemoteException, MalformedURLException, NotBoundException, InterruptedException {
         System.out.println("Launcher started !");
-        for (int i = 0; i < N; i++)
-            stub[i].main_proc();
-        while (true) // do as many rounds as possible, till System.exit(0) kicks in
-        {
-            /*
-            for (int i = 0; i < N; i++)
-                stub[i].main_proc_nid(); // launch 1st step
-            for (int i = 0; i < N; i++)
-                stub[i].main_proc_nnid();
-            for (int i = 0; i < N; i++)
-                stub[i].main_proc_check();
-            for (int i = 0; i < N; i++)
-                stub[i].reassign_id();
-            */
+        Thread[] P = new Thread[N];
+        for (int i = 0; i < N; i++){
+            P[i] = new Thread(new Launcher(stub[i]));
+            P[i].start();
         }
-
     }
 }

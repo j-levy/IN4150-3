@@ -63,7 +63,7 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
             //System.out.println(id+" : broadcast finished");
             while(proceedN < N-f);
             
-            System.out.println(id+" : enough messages received");
+            //System.out.println(id+" : enough messages received");
             int count0 =0;
             int count1 =0;
             for (int i =0; i < proceedN; i++)
@@ -112,6 +112,7 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
                 {
                     decidedValue = 0;
                     isDecided = true;
+                    System.out.println(id + " : value = "+value+" ; isDecided = " +isDecided+" ; decided value = "+decidedValue);
                 }
             }else if(count1 > f){
                 value = 1;
@@ -119,17 +120,22 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
                 {
                     decidedValue = 1;
                     isDecided = true;
+                    System.out.println(id + " : value = "+value+" ; isDecided = " +isDecided+" ; decided value = "+decidedValue);
                 }
             }else{
                 value = (int) Math.round(Math.random());
                 round++;
             }
-            System.out.println(id + " : value = "+value+" ; isDecided = " +isDecided+" ; decided value = "+decidedValue);
     }
 }
 
 
     public synchronized void receive(Message m) throws RemoteException {
+        try{
+            Thread.sleep((int)Math.random()*1000);
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
         switch(m.getType()) {
             case 'P' :
                 Proposals.add(m);

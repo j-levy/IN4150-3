@@ -16,4 +16,12 @@ public class SparseArrayList extends ArrayList<Integer> {
             this.add(value);
         }
     }
+
+    public int SparseGet(int index) {
+        if (index < this.size()) {
+            return this.get(index);
+        } else {
+            return 0;
+        }
+    }
 }

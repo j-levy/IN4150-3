@@ -12,8 +12,10 @@ public class Main {
 
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
 	// write your code here
-        int N = 6; // number of processes
-        int f = 0;
+        int N = 17; // number of processes
+        int f = 5;
+        //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
+
         /*
         Failure types :
         00000001 : Don't send any message at all (domines all)
@@ -22,9 +24,8 @@ public class Main {
         00001000 : Reverse the value (0 => 1, 1 => 0, -1 => 0 or 1)
         00010000 : Put agnostic value (-1) on Proposal
          */
-        byte failureType = (byte) 0b00001000;
+        byte failureType = (byte) 0b00001010;
 
-        //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
         System.out.println("N = "+N+", f = "+f);
 
 

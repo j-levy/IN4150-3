@@ -13,7 +13,9 @@ public class Launcher implements Runnable{
     @Override
     public void run() {
         try {
-            stub.main_proc();
+            int res = stub.main_proc();
+            System.err.println("Finished with value "+res);
+
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

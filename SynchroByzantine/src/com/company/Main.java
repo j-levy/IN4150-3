@@ -12,17 +12,17 @@ public class Main {
 
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
 	// write your code here
-        int N = 11; // number of processes
-        int f = 2;
+        int N = 6; // number of processes
+        int f = 0;
         /*
         Failure types :
-        00000001 : Don't send any message at all (domines 010)
+        00000001 : Don't send any message at all (domines all)
         00000010 : Flip a coin and send a message if heads (recess in front of 001)
         00000100 : Send a random value instead of the real value
         00001000 : Reverse the value (0 => 1, 1 => 0, -1 => 0 or 1)
-        00010000 : Put agnostic value (-1)
+        00010000 : Put agnostic value (-1) on Proposal
          */
-        byte failureType = (byte) 0b00000000;
+        byte failureType = (byte) 0b00001000;
 
         //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
         System.out.println("N = "+N+", f = "+f);
@@ -54,6 +54,7 @@ public class Main {
                 e.printStackTrace();
             }
         }
+
         Registry[] reg = new Registry[N];
         ByzantineServerInterface[] stub = new ByzantineServerInterface[N];
 

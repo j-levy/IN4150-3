@@ -4,8 +4,8 @@ import java.rmi.RemoteException;
 
 public class Launcher implements Runnable{
     ByzantineServerInterface stub;
-    public Launcher(ByzantineServerInterface b) {
 
+    public Launcher(ByzantineServerInterface b) {
         stub = b;
     }
 

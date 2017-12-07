@@ -4,6 +4,7 @@ import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Random;
 
 public class ByzantineServerImplementation implements ByzantineServerInterface {
@@ -21,7 +22,7 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
     private Registry syncreg;
     private SynchroServerInterface syncstub;
 
-    private volatile int proceedN, proceedP;
+    private volatile SparseArrayList proceedN, proceedP;
     private volatile ArrayList<Message> Notifies, Proposals;
     Random coin;
 
@@ -34,11 +35,11 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
         this.id = remoteID;
         this.value = (int) Math.round(Math.random());
         this.isTraitor = remoteIsTraitor;
-        this.round = 1;
+        this.round = 0;
         this.Proposals = new ArrayList<Message>();
         this.Notifies = new ArrayList<Message>();
-        this.proceedN = 0;
-        this.proceedP = 0;
+        this.proceedN = new SparseArrayList();
+        this.proceedP = new SparseArrayList();
         this.isDecided = false;
         this.decidedValue = -1;
 
@@ -69,17 +70,18 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
             //System.out.println(id+" : broadcasting");
             broadcast(m);
             //System.out.println(id+" : broadcast finished");
-            while(proceedN < N-f);
-            
+            while(proceedN.get(round) < N-f) {
+            }
+
             //System.out.println(id+" : enough messages received");
             int count0 =0;
             int count1 =0;
-            for (int i =0; i < proceedN; i++)
+            for (int i =0; i < Notifies.size(); i++)
             {
-                if(Notifies.get(i).getvalue() == 0)
+                if(Notifies.get(i).getRound() == round && Notifies.get(i).getvalue() == 0)
                 {
                     count0++;
-                }else if(Notifies.get(i).getvalue() == 1)
+                } else if(Notifies.get(i).getRound() == round && Notifies.get(i).getvalue() == 1)
                 {
                     count1++;
                 }
@@ -98,17 +100,18 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
             {
                 return decidedValue;
             }else{
-                while(proceedP < (N-f));
+                while(proceedP.get(round) < (N-f)) {
+                }
             }
 
             count0 = 0;
             count1 = 0;
-            for (int i =0; i < proceedP; i++)
+            for (int i =0; i < Proposals.size(); i++)
             {
-                if(Proposals.get(i).getvalue() == 0)
+                if(Proposals.get(i).getRound() == round && Proposals.get(i).getvalue() == 0)
                 {
                     count0++;
-                }else if(Proposals.get(i).getvalue() == 1)
+                } else if(Proposals.get(i).getRound() == round && Proposals.get(i).getvalue() == 1)
                 {
                     count1++;
                 }
@@ -118,6 +121,7 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
                 value = 0;
                 if(count0 > (3*f))
                 {
+                    System.out.flush();
                     decidedValue = 0;
                     isDecided = true;
                     System.out.println(id + " : value = "+value+" ; isDecided = " +isDecided+" ; decided value = "+decidedValue);
@@ -126,12 +130,15 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
                 value = 1;
                 if(count1 > (3*f))
                 {
+                    System.out.flush();
                     decidedValue = 1;
                     isDecided = true;
                     System.out.println(id + " : value = "+value+" ; isDecided = " +isDecided+" ; decided value = "+decidedValue);
                 }
             }else{
                 value = (int) Math.round(Math.random());
+                System.out.println(id + " proceedN = "+proceedN);
+                System.out.println(id + " proceedP = "+proceedP);
                 round++;
             }
     }
@@ -140,19 +147,31 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
 
     public synchronized void receive(Message m) throws RemoteException {
         try{
-            Thread.sleep((int) Math.round(Math.random())*1000);
+            Thread.sleep((int) Math.round(Math.random())*100);
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
         switch(m.getType()) {
             case 'P' :
                 Proposals.add(m);
-                proceedP++;
+                if (m.getRound() >= proceedP.size())
+                    proceedP.SparseAdd(m.getRound(), 0);
+
+                proceedP.set(m.getRound(), proceedP.get(m.getRound())+1) ;
+
+                /*proceedP (index = round number, starts at 0)
+                    |_|0|_|_|
+                    |_|1|_|_|
+                */
+
                 //System.out.println(id+ " receives proposal");
             break;
             case 'N' :
                 Notifies.add(m);
-                proceedN++;
+                if (m.getRound() >= proceedN.size())
+                    proceedN.SparseAdd(m.getRound(), 0);
+
+                proceedN.set(m.getRound(), proceedN.get(m.getRound())+1) ;
                 //System.out.println(id+ " receives notify");
             break;
             default:
@@ -197,6 +216,7 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
                     isSending = true;
                     break;
                 default:
+                    isSending = true;
                     break;
             }
 

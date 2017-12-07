@@ -10,18 +10,13 @@ public class Message implements Remote, Serializable {
     private int round;
     private int value;
 
-    private Random coin;
-
-
     public Message(char type, int round, int value) {
         this.type = type;
         this.round = round;
         this.value = value;
-        this.coin = new Random();
     }
 
-    /* message type cannot be changed, so only getters, so setters outside the constructor */
-
+    /* message type cannot be changed, so only getters. Setters are built-in modifiers like randValue... */
     public int getRound() { return round; }
     public char getType() { return type; }
     public int getvalue() { return value; }
@@ -32,7 +27,6 @@ public class Message implements Remote, Serializable {
     }
 
     public void reverseValue() {
-
         switch (value) {
             case 0:
                 value = 1;

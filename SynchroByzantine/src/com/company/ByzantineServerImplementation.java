@@ -16,11 +16,11 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
     private boolean isDecided;
     private int decidedValue;
 
-    private Registry[] regs;
-    private ByzantineServerInterface[] stub;
+    private static Registry[] regs;
+    private static ByzantineServerInterface[] stub;
 
-    private Registry syncreg;
-    private SynchroServerInterface syncstub;
+    private static Registry syncreg;
+    private static SynchroServerInterface syncstub;
 
     private volatile SparseArrayList proceedN, proceedP;
     private volatile ArrayList<Message> Notifies, Proposals;
@@ -47,11 +47,10 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
 
         regs = new Registry[N];
         stub = new ByzantineServerInterface[N];
-        /*
+
         syncreg = LocateRegistry.getRegistry(20000);
         syncstub = (SynchroServerInterface) java.rmi.Naming.lookup("rmi://localhost:" + (20000) + "/Synchro");
-        syncstub.down();
-        */
+
     }
 
     public void connect() throws RemoteException, MalformedURLException, NotBoundException, InterruptedException {
@@ -62,14 +61,11 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
         }
     }
 
-    public int main_proc() throws RemoteException, InterruptedException {
+    public int main_proc() throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
         while(true)
         {
-            
             Message m = new Message('N', round, value);
-            //System.out.println(id+" : broadcasting");
             broadcast(m);
-            //System.out.println(id+" : broadcast finished");
             while(proceedN.SparseGet(round) < N-f) {
             }
 
@@ -86,94 +82,92 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
                     count1++;
                 }
             }
+            int toSend = -1;
+
             if (count0 > ((N+f)/2.0))
             {
-                broadcast(new Message('P', round, 0));
-            }else if(count1 > ((N+f)/2.0)){
-                broadcast(new Message('P', round, 1));
-            }else{
-                broadcast(new Message('P', round, -1));
+                toSend = 0;
+            }else if(count1 > ((N+f)/2.0))
+            {
+                toSend = 1;
+            }else
+            {
+                toSend = -1;
             }
+            broadcast(new Message('P', round, toSend));
 
 
             if (isDecided)
             {
-                return decidedValue;
-            }else{
-                while(proceedP.SparseGet(round) < (N-f)) {
-                }
+                System.out.println("PID : "+id+" decided on value : "+value+" at round "+round);
+                syncstub.down(decidedValue);
+                break;
             }
+
+            while(proceedP.SparseGet(round) < (N-f)) {
+            }
+
 
             count0 = 0;
             count1 = 0;
-            for (int i = 0; i < Proposals.size(); i++)
-            {
-                if(Proposals.get(i).getRound() == round && Proposals.get(i).getvalue() == 0)
-                {
+            for (Message Proposal : Proposals) {
+                if (Proposal.getRound() == round && Proposal.getvalue() == 0) {
                     count0++;
-                } else if(Proposals.get(i).getRound() == round && Proposals.get(i).getvalue() == 1)
-                {
+                } else if (Proposal.getRound() == round && Proposal.getvalue() == 1) {
                     count1++;
                 }
             }
-            if (count0 > f)
-            {
-                value = 0;
-                if(count0 > (3*f))
-                {
-                    System.out.flush();
-                    decidedValue = 0;
+
+            if (count0 > f || count1 > f) {
+                value = (count0 > f) ? 0 : 1;
+                if ((value == 0 && count0 > 3*f) || (value == 1 && count1 > 3*f)) {
+                    decidedValue = value;
                     isDecided = true;
-                    System.out.println(id + " : value = "+value+" ; isDecided = " +isDecided+" ; decided value = "+decidedValue);
-                }
-            } else if(count1 > f) {
-                value = 1;
-                if(count1 > (3*f))
-                {
-                    System.out.flush();
-                    decidedValue = 1;
-                    isDecided = true;
-                    System.out.println(id + " : value = "+value+" ; isDecided = " +isDecided+" ; decided value = "+decidedValue);
                 }
             }else{
                 value = (int) Math.round(Math.random());
             }
+            System.out.println(id+"  finished round "+round+" with value "+value+" and isDecided "+isDecided);
             round++;
-            System.out.println(id + " proceedN = "+proceedN);
-            System.out.println(id + " proceedP = "+proceedP);
-
+            //System.out.println(id + " proceedN = "+proceedN);
+            //System.out.println(id + " proceedP = "+proceedP);
         }
+        return 0;
 }
 
 
     public synchronized void receive(Message m) throws RemoteException {
         try{
-            Thread.sleep((int) Math.round(Math.random())*1);
+            Thread.sleep((int) Math.round(Math.random())*10);
         } catch(InterruptedException e) {
             e.printStackTrace();
         }
         switch(m.getType()) {
             case 'P' :
-                Proposals.add(m);
-                if (m.getRound() >= proceedP.size())
-                    proceedP.SparseAdd(m.getRound(), 0);
+                if (proceedP.SparseGet(m.getRound()) < N-f)
+                {
+                    Proposals.add(m);
+                    if (m.getRound() >= proceedP.size())
+                        proceedP.SparseAdd(m.getRound(), 0);
 
-                proceedP.set(m.getRound(), proceedP.get(m.getRound())+1) ;
+                    proceedP.set(m.getRound(), proceedP.get(m.getRound())+1) ;
 
                 /*proceedP (index = round number, starts at 0)
                     |_|0|_|_|
                     |_|1|_|_|
                 */
 
-                //System.out.println(id+ " receives proposal");
+                }
             break;
             case 'N' :
-                Notifies.add(m);
-                if (m.getRound() >= proceedN.size())
-                    proceedN.SparseAdd(m.getRound(), 0);
+                if (proceedN.SparseGet(m.getRound()) < N-f)
+                {
+                    Notifies.add(m);
+                    if (m.getRound() >= proceedN.size())
+                        proceedN.SparseAdd(m.getRound(), 0);
 
-                proceedN.set(m.getRound(), proceedN.get(m.getRound())+1) ;
-                //System.out.println(id+ " receives notify");
+                    proceedN.set(m.getRound(), proceedN.get(m.getRound())+1) ;
+                }
             break;
             default:
             break;
@@ -182,49 +176,16 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
 
 
     public void broadcast(Message m1) throws RemoteException, InterruptedException {
-        int shouldIsend = 1;
-        boolean isSending = true;
-
-        if ((failureType & 0b00001000) == 0b00001000)
-        {
-            m1.reverseValue();
-        }
-
+        Message m2 = new Message(m1.getType(), m1.getRound(), m1.getvalue());
         for (int i = 0; i < N; i++)
         {
             if (isTraitor)
             {
-                if ((failureType & 0b00010000) == 0b00010000)
-                {
-                    m1.agnosticValue();
-                }
-                if ((failureType & 0b00000100) == 0b00000100)
-                {
-                    m1.randValue();
-                }
-                if ((failureType & 0b00000010) == 0b00000010)
-                {
-                    shouldIsend = (int) Math.round(Math.random());
-                }
-                if ((failureType & 0b00000001) == 0b00000001)
-                {
-                    shouldIsend = 0;
-                }
+                m2.randValue();
+                stub[i].receive(m2);
+            } else {
+                stub[i].receive(m2);
             }
-
-            switch(shouldIsend) {
-                case 0:
-                    isSending = false;
-                    break;
-                case 1:
-                    isSending = true;
-                    break;
-                default:
-                    isSending = true;
-                    break;
-            }
-            if (isSending)
-                stub[i].receive(m1);
         }
     }
 

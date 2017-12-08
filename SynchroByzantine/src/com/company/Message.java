@@ -9,13 +9,11 @@ public class Message implements Remote, Serializable {
     private char type;
     private int round;
     private int value;
-    private Random coin;
 
     public Message(char type, int round, int value) {
         this.type = type;
         this.round = round;
         this.value = value;
-        this.coin = new Random();
     }
 
     /* message type cannot be changed, so only getters. Setters are built-in modifiers like randValue... */
@@ -24,9 +22,7 @@ public class Message implements Remote, Serializable {
     public int getvalue() { return value; }
 
     public void randValue() {
-        this.value = (int) coin.nextInt(1);
-        // this.value = (int) Math.round(Math.random());
-        //System.err.println("Shuffled !");
+        this.value = (int) Math.round(Math.random());
     }
 
     public void reverseValue() {
@@ -37,8 +33,7 @@ public class Message implements Remote, Serializable {
             case 1:
                 value = 0;
                 break;
-            case -1:
-                randValue();
+            default:
                 break;
         }
     }

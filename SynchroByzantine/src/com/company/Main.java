@@ -10,10 +10,13 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class Main {
 
+    static Registry[] reg;
+    static ByzantineServerInterface[] stub;
+
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
 	// write your code here
-        int N = 17; // number of processes
-        int f = 5;
+        int N = 20; // number of processes
+        int f = 3;
         //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
 
         /*
@@ -24,7 +27,7 @@ public class Main {
         00001000 : Reverse the value (0 => 1, 1 => 0, -1 => 0 or 1)
         00010000 : Put agnostic value (-1) on Proposal
          */
-        byte failureType = (byte) 0b00001010;
+        byte failureType = (byte) 0b00000010;
 
         System.out.println("N = "+N+", f = "+f);
 
@@ -56,8 +59,9 @@ public class Main {
             }
         }
 
-        Registry[] reg = new Registry[N];
-        ByzantineServerInterface[] stub = new ByzantineServerInterface[N];
+        reg = new Registry[N];
+        stub = new ByzantineServerInterface[N];
+
 
         for (int i = 0; i < N; i++)
         {
@@ -65,8 +69,9 @@ public class Main {
             stub[i] = (ByzantineServerInterface) java.rmi.Naming.lookup("rmi://localhost:" + (10000 + i) + "/Receive");
         }
 
-        for (int i = 0; i < N; i++)
+        for (int i = 0; i < N; i++) {
             stub[i].connect();
+        }
 
         Thread[] P = new Thread[N];
         for (int i = 0; i < N; i++){

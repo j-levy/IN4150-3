@@ -12,6 +12,8 @@ public class SynchroLauncher implements Runnable {
         Registry reg2;
         SynchroServerInterface syncstub;
 
+
+        /*
         try {
             reg2 = LocateRegistry.getRegistry(20000);
             syncstub = (SynchroServerInterface) java.rmi.Naming.lookup("rmi://localhost:" + (20000) + "/Synchro");
@@ -25,5 +27,6 @@ public class SynchroLauncher implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        */
     }
 }

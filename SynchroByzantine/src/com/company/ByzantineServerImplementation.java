@@ -177,12 +177,37 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
 
     public void broadcast(Message m1) throws RemoteException, InterruptedException {
         Message m2 = new Message(m1.getType(), m1.getRound(), m1.getvalue());
+        boolean isReversed = false;
         for (int i = 0; i < N; i++)
         {
             if (isTraitor)
             {
-                m2.randValue();
-                stub[i].receive(m2);
+                if ((failureType & 4) == 4) {
+                    // randomize the value
+                    m2.randValue();
+                } else if ((failureType & 8) == 8 && !isReversed) {
+                    // reverse the value, once
+                    m2.reverseValue();
+                    isReversed = true;
+                }
+
+                if ((failureType & 16) == 16) {
+                    // put agnostic. Can actually be combined with other failures that would affect Notifies !!
+                    m2.agnosticValue();
+                }
+
+                if ((failureType & 1) == 1)
+                {
+                    // do nothing
+                } else if ((failureType & 2) == 2) {
+                    // sometimes send (probability 0.5)
+                    if (Math.round(Math.random()) > 0.5)
+                        stub[i].receive(m2);
+                } else {
+                    // No "send-type" errors : send it.
+                    stub[i].receive(m2);
+                }
+
             } else {
                 stub[i].receive(m2);
             }

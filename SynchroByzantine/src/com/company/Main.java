@@ -85,6 +85,8 @@ public class Main {
                 remoteStub[i] =
                         (ByzantineServerInterface) UnicastRemoteObject.exportObject(ByzantineSkeleton[i], 10000 + i);
                 ByzanceRegistry[i] = LocateRegistry.createRegistry(10000+i);
+                // You must bind the actual object ByzantineServerImplementation, not the result of UnicastRemoteObject
+                // Because the result of UnicastRemoteObject creates a new thread that goes out of scope, then garbage-collected !
                 ByzanceRegistry[i].rebind("Receive", ByzantineSkeleton[i]);
 
             } catch (Exception e) {

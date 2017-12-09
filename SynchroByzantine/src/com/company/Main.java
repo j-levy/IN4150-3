@@ -12,24 +12,54 @@ public class Main {
 
     static Registry[] reg;
     static ByzantineServerInterface[] stub;
+    private static Remote[] remoteStub;
+
 
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
 	// write your code here
-        int N = 20; // number of processes
-        int f = 3;
+        int N = 100; // number of processes
+        int f = 15;
         //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
 
         /*
         Failure types :
-        00000001 : Don't send any message at all (domines all)
-        00000010 : Flip a coin and send a message if heads (recess in front of 001)
-        00000100 : Send a random value instead of the real value
-        00001000 : Reverse the value (0 => 1, 1 => 0, -1 => 0 or 1)
-        00010000 : Put agnostic value (-1) on Proposal
+        00000001 (1) : Don't send any message at all (domines all)
+        00000010 (2) : Flip a coin and send a message if heads (recess in front of 001)
+        00000100 (4) : Send a random value instead of the real value
+        00001000 (8) : Reverse the value (0 => 1, 1 => 0, -1 => 0 or 1)
+        00010000 (16): Put agnostic value (-1) on Proposal
          */
-        byte failureType = (byte) 0b00000010;
+        byte failureType = (byte) 4;
 
-        System.out.println("N = "+N+", f = "+f);
+
+        System.out.print("Traitors behaviour : ");
+        if ((failureType & 4) == 4) {
+            // randomize the value
+            System.out.print("Randomize value, ");
+        } else if ((failureType & 8) == 8) {
+            // reverse the value, once
+            System.out.print("Reverse value, ");
+        }
+
+        if ((failureType & 16) == 16) {
+            // put agnostic. Can actually be combined with other failures that would affect Notifies !!
+            System.out.print("put agnostic on P, ");
+        }
+
+        if ((failureType & 1) == 1)
+        {
+            // do nothing
+            System.out.print("Never send");
+        } else if ((failureType & 2) == 2) {
+            // sometimes send (probability 0.5)
+            System.out.print("Sometimes send (proba. 0.5)");
+        } else {
+            // No "send-type" errors : send it.
+            System.out.print("Always send");
+        }
+
+
+        System.out.println("\nN = "+N+", f = "+f);
 
 
         // Creating ang lauching synchro server
@@ -42,15 +72,18 @@ public class Main {
         Thread.sleep(1000);
 
         ByzantineServerInterface[] ByzantineSkeleton = new ByzantineServerInterface[N];
+        Remote[] remoteStub = new Remote[N];
         Registry[] ByzanceRegistry = new Registry[N];
+
         //Start the nodes
         for(int i = 0; i < N; i++)
         {
             try {
                 // ByzantineServerImplementation(Number of Byzantines, own ID, isTraitor (first "f" ones are, next aren't)
                 boolean isTraitor = i < f;
-                ByzantineSkeleton[i] =
-                        (ByzantineServerInterface) UnicastRemoteObject.exportObject(new ByzantineServerImplementation(N, f, i, isTraitor, failureType), 10000 + i);
+                ByzantineSkeleton[i] = new ByzantineServerImplementation(N, f, i, isTraitor, failureType);
+                remoteStub[i] =
+                        (ByzantineServerInterface) UnicastRemoteObject.exportObject(ByzantineSkeleton[i], 10000 + i);
                 ByzanceRegistry[i] = LocateRegistry.createRegistry(10000+i);
                 ByzanceRegistry[i].rebind("Receive", ByzantineSkeleton[i]);
 
@@ -70,6 +103,7 @@ public class Main {
         }
 
         for (int i = 0; i < N; i++) {
+            System.err.println("Connecting "+i);
             stub[i].connect();
         }
 

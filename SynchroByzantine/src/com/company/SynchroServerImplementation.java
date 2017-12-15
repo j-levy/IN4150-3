@@ -31,11 +31,16 @@ public class SynchroServerImplementation implements SynchroServerInterface {
     public synchronized void down(int res) throws RemoteException, NotBoundException, MalformedURLException {
         countdown--;
         results.add(res);
-        System.err.print(countdown+", ");
-        System.err.println("Finished with value "+res);
+        //System.err.print(countdown+", ");
+        //System.err.println("Finished with value "+res);
         if (countdown <= 0 )
         {
             System.err.println("Results :\n"+results);
+            int checksum = 0;
+            for (int i = 0; i < results.size(); i++)
+                checksum += results.get(i);
+
+            System.err.println("Checksum = "+checksum%N+". (Checksum should be 0, meaning no error.)");
             System.exit(0);
         }
     }

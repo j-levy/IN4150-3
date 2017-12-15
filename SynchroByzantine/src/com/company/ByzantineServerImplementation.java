@@ -67,7 +67,7 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
             Message m = new Message('N', round, value);
             broadcast(m);
             while(proceedN.SparseGet(round) < N-f) {
-            }
+        }
 
             //System.out.println(id+" : enough messages received");
             int count0 =0;
@@ -127,7 +127,8 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
             }else{
                 value = (int) Math.round(Math.random());
             }
-            System.out.println(id+"  finished round "+round+" with value "+value+" and isDecided "+isDecided);
+            //System.out.println(id+"  finished round "+round+" with value "+value+" and isDecided "+isDecided);
+            System.out.print(".");
             round++;
             //System.out.println(id + " proceedN = "+proceedN);
             //System.out.println(id + " proceedP = "+proceedP);
@@ -145,12 +146,12 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
         switch(m.getType()) {
             case 'P' :
                 if (proceedP.SparseGet(m.getRound()) < N-f)
-                {
-                    Proposals.add(m);
-                    if (m.getRound() >= proceedP.size())
-                        proceedP.SparseAdd(m.getRound(), 0);
+                    {
+                        Proposals.add(m);
+                        if (m.getRound() >= proceedP.size())
+                            proceedP.SparseAdd(m.getRound(), 0);
 
-                    proceedP.set(m.getRound(), proceedP.get(m.getRound())+1) ;
+                        proceedP.set(m.getRound(), proceedP.get(m.getRound())+1) ;
 
                 /*proceedP (index = round number, starts at 0)
                     |_|0|_|_|

@@ -7,18 +7,22 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.sql.Time;
 
 public class Main {
 
-    static Registry[] reg;
-    static ByzantineServerInterface[] stub;
+    private static Registry[] reg;
+    private static ByzantineServerInterface[] stub;
     private static Remote[] remoteStub;
+
+    private static SynchroServerImplementation TimeLord;
+    private static Remote TimeLordStub;
 
 
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
 	// write your code here
-        int N = 100; // number of processes
-        int f = 15;
+        int N = 230; // number of processes
+        int f = 1;
         //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
 
         /*
@@ -29,7 +33,7 @@ public class Main {
         00001000 (8) : Reverse the value (0 => 1, 1 => 0, -1 => 0 or 1)
         00010000 (16): Put agnostic value (-1) on Proposal
          */
-        byte failureType = (byte) 4;
+        byte failureType = (byte) 0b00000100;
 
 
         System.out.print("Traitors behaviour : ");
@@ -61,13 +65,13 @@ public class Main {
 
         System.out.println("\nN = "+N+", f = "+f);
 
-
+        TimeLord = new SynchroServerImplementation(N);
         // Creating ang lauching synchro server
-        SynchroServerInterface skeleton = (SynchroServerInterface) UnicastRemoteObject.exportObject(new SynchroServerImplementation(N), 20000);
+        TimeLordStub = (SynchroServerInterface) UnicastRemoteObject.exportObject(TimeLord, 20000);
 
         Registry registry;
         registry = LocateRegistry.createRegistry(20000);
-        registry.rebind("Synchro", (Remote) skeleton);
+        registry.rebind("Synchro", (Remote) TimeLord);
 
         Thread.sleep(1000);
 

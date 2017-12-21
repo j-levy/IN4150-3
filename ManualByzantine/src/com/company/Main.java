@@ -8,6 +8,9 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.sql.Time;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Main {
 
@@ -23,6 +26,7 @@ public class Main {
 	// write your code here
         int N = 11; // number of processes
         int f = 1;
+        List<Integer> remoteValue = Arrays.asList(0,0,0,0,0,0,0,0,0,1,1);
         //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
 
         /*
@@ -85,7 +89,7 @@ public class Main {
             try {
                 // ByzantineServerImplementation(Number of Byzantines, own ID, isTraitor (first "f" ones are, next aren't)
                 boolean isTraitor = i < f;
-                ByzantineSkeleton[i] = new ByzantineServerImplementation(N, f, i, isTraitor, failureType);
+                ByzantineSkeleton[i] = new ByzantineServerImplementation(N, f, i, isTraitor, failureType, remoteValue.get(i));
                 remoteStub[i] =
                         (ByzantineServerInterface) UnicastRemoteObject.exportObject(ByzantineSkeleton[i], 10000 + i);
                 ByzanceRegistry[i] = LocateRegistry.createRegistry(10000+i);

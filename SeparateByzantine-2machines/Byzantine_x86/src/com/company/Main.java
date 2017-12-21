@@ -21,6 +21,13 @@ public class Main {
 
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
 	// write your code here
+
+
+        String PC_IP = "145.94.5.135";
+        System.setProperty("java.rmi.server.hostname",PC_IP);
+
+
+
         int N = 11; // number of processes
         int f = 1;
         //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
@@ -80,7 +87,7 @@ public class Main {
         Registry[] ByzanceRegistry = new Registry[N];
 
         //Start the nodes
-        for(int i = 0; i < N; i++)
+        for(int i = 0; i < N-1; i++)
         {
             try {
                 // ByzantineServerImplementation(Number of Byzantines, own ID, isTraitor (first "f" ones are, next aren't)
@@ -98,23 +105,36 @@ public class Main {
             }
         }
 
+
+        System.out.println("N-1 nodes on x86 created. Create N-th node, then press Enter key to continue...");
+        try
+        {
+            System.in.read();
+        }
+        catch(Exception e)
+        {}
+        System.out.println("Continuing.");
+
+
         reg = new Registry[N];
         stub = new ByzantineServerInterface[N];
 
 
-        for (int i = 0; i < N; i++)
+
+        for (int i = 0; i < N-1; i++)
         {
             reg[i] = LocateRegistry.getRegistry(10000 + i);
             stub[i] = (ByzantineServerInterface) java.rmi.Naming.lookup("rmi://localhost:" + (10000 + i) + "/Receive");
         }
 
-        for (int i = 0; i < N; i++) {
+        for (int i = 0; i < N-1; i++) {
             System.err.println("Connecting "+i);
             stub[i].connect();
         }
 
-        Thread[] P = new Thread[N];
-        for (int i = 0; i < N; i++){
+        Thread[] P = new Thread[N-1];
+
+        for (int i = 0; i < N-1; i++){
             P[i] = new Thread(new Launcher(stub[i]));
             P[i].start();
         }

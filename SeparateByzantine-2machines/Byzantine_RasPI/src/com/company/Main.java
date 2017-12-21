@@ -18,9 +18,23 @@ public class Main {
     private static SynchroServerImplementation TimeLord;
     private static Remote TimeLordStub;
 
+    private static final String PC_IP = "145.94.142.70";
 
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
-	// write your code here
+
+
+        /*
+        The structure to show the algorithm run on multiple machine is quite basic :
+        The PC hosts N processes, while the remote Raspberry hosts an N+1-th node.
+        Hence, by structure, the Raspberry is never a traitor (because only the first "f" nodes are traitors).
+        This demonstrates the algorithm on multiple machines, while keeping the structure simple.
+        The TimeLord server, only used for termination, verification and debugging, stays on the PC.
+         */
+
+        System.setProperty("java.rmi.server.hostname","yattoz.ddns.net");
+
+
+
         int N = 11; // number of processes
         int f = 1;
         //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
@@ -64,7 +78,7 @@ public class Main {
 
 
         System.out.println("\nN = "+N+", f = "+f);
-
+        /*
         TimeLord = new SynchroServerImplementation(N);
         // Creating ang lauching synchro server
         TimeLordStub = (SynchroServerInterface) UnicastRemoteObject.exportObject(TimeLord, 20000);
@@ -72,19 +86,19 @@ public class Main {
         Registry registry;
         registry = LocateRegistry.createRegistry(20000);
         registry.rebind("Synchro", (Remote) TimeLord);
-
+        */
         Thread.sleep(1000);
 
         ByzantineServerInterface[] ByzantineSkeleton = new ByzantineServerInterface[N];
         Remote[] remoteStub = new Remote[N];
         Registry[] ByzanceRegistry = new Registry[N];
 
-        //Start the nodes
-        for(int i = 0; i < N; i++)
+        //Start the last node
+        for(int i = N-1; i < N; i++)
         {
             try {
                 // ByzantineServerImplementation(Number of Byzantines, own ID, isTraitor (first "f" ones are, next aren't)
-                boolean isTraitor = i < f;
+                boolean isTraitor = false;
                 ByzantineSkeleton[i] = new ByzantineServerImplementation(N, f, i, isTraitor, failureType);
                 remoteStub[i] =
                         (ByzantineServerInterface) UnicastRemoteObject.exportObject(ByzantineSkeleton[i], 10000 + i);
@@ -98,26 +112,36 @@ public class Main {
             }
         }
 
+        System.out.println("1 node on RaspPi created. Create N-1 nodes on x86 side, then press Enter key to continue...");
+        try
+        {
+            System.in.read();
+        }
+        catch(Exception e)
+        {}
+        System.out.println("Continuing.");
+
         reg = new Registry[N];
         stub = new ByzantineServerInterface[N];
 
 
-        for (int i = 0; i < N; i++)
+        for (int i = N-1; i < N; i++)
         {
             reg[i] = LocateRegistry.getRegistry(10000 + i);
             stub[i] = (ByzantineServerInterface) java.rmi.Naming.lookup("rmi://localhost:" + (10000 + i) + "/Receive");
         }
 
-        for (int i = 0; i < N; i++) {
+        for (int i = N-1; i < N; i++) {
             System.err.println("Connecting "+i);
             stub[i].connect();
         }
 
-        Thread[] P = new Thread[N];
-        for (int i = 0; i < N; i++){
-            P[i] = new Thread(new Launcher(stub[i]));
-            P[i].start();
-        }
+
+        // Start last node. Changed to be simpler.
+        Thread P;
+        P = new Thread(new Launcher(stub[N-1]));
+        P.start();
+
 
     }
 }

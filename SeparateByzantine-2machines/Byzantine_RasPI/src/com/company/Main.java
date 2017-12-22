@@ -18,7 +18,7 @@ public class Main {
     private static SynchroServerImplementation TimeLord;
     private static Remote TimeLordStub;
 
-    private static final String PC_IP = "145.94.142.70";
+    private static final String PC_IP = "192.168.0.102";
 
     public static void main(String[] args) throws RemoteException, InterruptedException, MalformedURLException, NotBoundException {
 

@@ -23,7 +23,7 @@ public class Main {
 	// write your code here
 
 
-        String PC_IP = "145.94.5.135";
+        String PC_IP = "192.168.0.102";
         System.setProperty("java.rmi.server.hostname",PC_IP);
 
 
@@ -113,7 +113,8 @@ public class Main {
         }
         catch(Exception e)
         {}
-        System.out.println("Continuing.");
+        System.out.println("Continuing. Continue on RasPI side within 10 seconds !!");
+        Thread.sleep(10000);
 
 
         reg = new Registry[N];

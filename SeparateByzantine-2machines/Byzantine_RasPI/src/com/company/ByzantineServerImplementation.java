@@ -25,7 +25,7 @@ public class ByzantineServerImplementation implements ByzantineServerInterface {
     private volatile SparseArrayList proceedN, proceedP;
     private volatile ArrayList<Message> Notifies, Proposals;
     Random coin;
-    private static final String PC_IP = "145.94.142.70";
+    private static final String PC_IP = "192.168.0.102";
 
 
 

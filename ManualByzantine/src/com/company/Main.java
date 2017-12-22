@@ -26,7 +26,8 @@ public class Main {
 	// write your code here
         int N = 11; // number of processes
         int f = 1;
-        List<Integer> remoteValue = Arrays.asList(0,0,0,0,0,0,0,0,0,1,1);
+        List<Integer> remoteValue = Arrays.asList(0,0,0,0,0,0,1,1,1,1,1);
+        byte failureType = (byte) 0b00001000;
         //int f = (int) Math.floor(Math.round(Math.random()*((N-1)/5)));
 
         /*
@@ -37,7 +38,7 @@ public class Main {
         00001000 (8) : Reverse the value (0 => 1, 1 => 0, -1 => 0 or 1)
         00010000 (16): Put agnostic value (-1) on Proposal
          */
-        byte failureType = (byte) 0b00000100;
+
 
 
         System.out.print("Traitors behaviour : ");
